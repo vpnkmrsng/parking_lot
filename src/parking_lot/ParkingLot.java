@@ -4,6 +4,8 @@ import entity.*;
 import pricing.PricingStrategy;
 import spot_manager.ParkingSpotManager;
 import spot_manager.ParkingSpotManagerFactory;
+import util.Constant;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ParkingLot {
-    private static ParkingLot parkingLot;
+    private static volatile ParkingLot parkingLot;
     private final PricingStrategy pricingStrategy;
     private List<ParkingSpot> motorCycleParkingSpotList;
     private List<ParkingSpot> suvParkingSpotList;
@@ -19,8 +21,10 @@ public class ParkingLot {
     private final Map<VehicleType, Integer> availableSpotCount;
 
     public static ParkingLot getInstance(PricingStrategy pricingStrategy, int motorcycleSpots, int suvSpots, int busSpots){
-        if(parkingLot == null){
-            parkingLot = new ParkingLot(pricingStrategy,motorcycleSpots,suvSpots,busSpots);
+        if (parkingLot == null) {
+            synchronized (ParkingLot.class){
+                parkingLot = new ParkingLot(pricingStrategy, motorcycleSpots, suvSpots, busSpots);
+            }
         }
         return parkingLot;
     }
@@ -32,21 +36,21 @@ public class ParkingLot {
         availableSpotCount.put(VehicleType.Motorcycle, motorcycleSpots);
         availableSpotCount.put(VehicleType.SUV, suvSpots);
         availableSpotCount.put(VehicleType.Bus, busSpots);
-        if(motorcycleSpots > 0){
+        if(motorcycleSpots > Constant.ZERO_PARKING_SPOT){
             motorCycleParkingSpotList = new ArrayList<>();
-            for(int i=0; i< motorcycleSpots; i++){
+            for(int i=Constant.NUMBER_ZER0; i< motorcycleSpots; i++){
                 motorCycleParkingSpotList.add(new ParkingSpot(VehicleType.Motorcycle));
             }
         }
-        if(suvSpots > 0){
+        if(suvSpots > Constant.ZERO_PARKING_SPOT){
             suvParkingSpotList = new ArrayList<>();
-            for(int i=0; i< suvSpots; i++){
+            for(int i=Constant.NUMBER_ZER0; i< suvSpots; i++){
                 suvParkingSpotList.add(new ParkingSpot(VehicleType.SUV));
             }
         }
-        if(busSpots > 0){
+        if(busSpots > Constant.ZERO_PARKING_SPOT){
             busParkingSpotList = new ArrayList<>();
-            for(int i=0; i< busSpots; i++){
+            for(int i=Constant.NUMBER_ZER0; i< busSpots; i++){
                 busParkingSpotList.add(new ParkingSpot(VehicleType.Bus));
             }
         }
@@ -54,12 +58,12 @@ public class ParkingLot {
     }
     public ParkingReceipt unParkVehicle(ParkingTicket parkingTicket) {
         parkingTicket.getParkingSpot().unParkVehicle();
-        availableSpotCount.put(parkingTicket.getVehicle().getVehicleType(), availableSpotCount.get(parkingTicket.getVehicle().getVehicleType()) +1);
+        availableSpotCount.put(parkingTicket.getVehicle().getVehicleType(), availableSpotCount.get(parkingTicket.getVehicle().getVehicleType()) + Constant.ONE_PARKING_SPOT);
         return new ParkingReceipt(parkingTicket.getEntryTime(), pricingStrategy.getPrice(parkingTicket));
     }
 
-    public ParkingTicket parkVehicle(Vehicle vehicle){
-        if (availableSpotCount.get(vehicle.getVehicleType()) <= 0){
+    public ParkingTicket parkVehicle(Vehicle vehicle) throws Exception {
+        if (availableSpotCount.get(vehicle.getVehicleType()) <= Constant.ZERO_PARKING_SPOT){
             System.out.println("No space available");
             return null;
         }
@@ -67,7 +71,7 @@ public class ParkingLot {
                 .getParkingSpotManager(vehicle.getVehicleType(), getParkingSpotList(vehicle.getVehicleType()));
         ParkingSpot parkingSpot= parkingSpotManager.findParkingSpace();
         parkingSpot.parkVehicle(vehicle);
-        availableSpotCount.put(vehicle.getVehicleType(), availableSpotCount.get(vehicle.getVehicleType())-1);
+        availableSpotCount.put(vehicle.getVehicleType(), availableSpotCount.get(vehicle.getVehicleType()) - Constant.ONE_PARKING_SPOT);
         return new ParkingTicket(parkingSpot, LocalDateTime.now(), vehicle);
     }
 

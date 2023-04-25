@@ -13,7 +13,7 @@ import pricing.StadiumPricing;
 public class ParkingLotTestCase {
 
     @Test
-    public void test1() throws InterruptedException {
+    public void mallTwoWheelerTest() throws Exception {
         Vehicle vehicle = new Vehicle(VehicleType.Motorcycle);
         ParkingLot parkingLot = ParkingLot.getInstance(new MallPricing(), 2, 2, 1);
         ParkingTicket parkingTicket = parkingLot.parkVehicle(vehicle);
@@ -23,7 +23,7 @@ public class ParkingLotTestCase {
     }
 
     @Test
-    public void test2(){
+    public void stadiumTwoWheelerTest() throws Exception {
         Vehicle vehicle1 = new Vehicle(VehicleType.Motorcycle);
         Vehicle vehicle2 = new Vehicle(VehicleType.Motorcycle);
         Vehicle vehicle3 = new Vehicle(VehicleType.Motorcycle);
@@ -38,7 +38,7 @@ public class ParkingLotTestCase {
     }
 
     @Test
-    public void test3(){
+    public void stadiumFourWheelerTest() throws Exception {
         Vehicle vehicle1 = new Vehicle(VehicleType.SUV);
         ParkingLot parkingLot = ParkingLot.getInstance(new AirportPricing(), 2, 2, 1);
         ParkingTicket parkingTicket1 = parkingLot.parkVehicle(vehicle1);

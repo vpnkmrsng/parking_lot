@@ -4,7 +4,7 @@ import java.util.UUID;
 
 public class ParkingSpot {
     private String parkingSpotId;
-    private boolean isAvailable;
+    private volatile boolean isAvailable;
     private Vehicle vehicle;
     private VehicleType vehicleType;
 
@@ -46,9 +46,17 @@ public class ParkingSpot {
         this.vehicleType = vehicleType;
     }
 
-    public void parkVehicle(Vehicle vehicle){
-        this.isAvailable = false;
-        this.vehicle = vehicle;
+    public void parkVehicle(Vehicle vehicle) throws Exception {
+        synchronized (this){
+            if (isAvailable) {
+                this.isAvailable = false;
+                this.vehicle = vehicle;
+            }
+            else {
+                throw new Exception("Please try again");
+            }
+        }
+
     }
 
     public void unParkVehicle(){
